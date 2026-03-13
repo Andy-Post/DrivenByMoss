@@ -163,6 +163,14 @@ public abstract class AbstractOpenSoundControlWriter implements IOpenSoundContro
     }
 
 
+    /** {@inheritDoc} */
+    @Override
+    public void sendOSC (final String address, final List<?> values, final boolean dump)
+    {
+        this.sendOSC (address, address, values, values, dump);
+    }
+
+
     /**
      * Send an OSC message with an object value. Tests if the value(s) of given message is identical
      * to that of the cache. If this is not the case or if dump is true, the message is added to the

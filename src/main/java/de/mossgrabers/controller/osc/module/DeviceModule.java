@@ -4,7 +4,10 @@
 
 package de.mossgrabers.controller.osc.module;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import de.mossgrabers.controller.osc.OSCConfiguration;
@@ -44,7 +47,9 @@ import de.mossgrabers.framework.parameter.IParameter;
  */
 public class DeviceModule extends AbstractModule
 {
-    private final OSCConfiguration configuration;
+    private static final String     ALL_PARAMS_ADDRESS = "/device/allparams/";
+
+    private final OSCConfiguration   configuration;
 
 
     /**
@@ -109,6 +114,7 @@ public class DeviceModule extends AbstractModule
         final ICursorDevice cd = this.model.getCursorDevice ();
         this.flushDevice (this.writer, "/device/", cd, dump);
         this.writer.sendOSC ("/device/pinned", cd.isPinned (), dump);
+        this.writer.sendOSC (ALL_PARAMS_ADDRESS + "count", this.getExistingParameterCount (cd), dump);
         if (cd.hasDrumPads ())
         {
             final IDrumPadBank drumPadBank = cd.getDrumPadBank ();
@@ -282,6 +288,10 @@ public class DeviceModule extends AbstractModule
                     parseFXParamValue (focusedParameter.get (), path, value);
                 break;
 
+            case "allparams":
+                this.parseAllParamsValue (cursorDevice, path, value);
+                break;
+
             case "+":
                 if (isTrigger (value))
                     cursorDevice.selectNext ();
@@ -426,6 +436,191 @@ public class DeviceModule extends AbstractModule
                 this.host.println ("Unknown Device command: " + command);
                 break;
         }
+    }
+
+
+    private void parseAllParamsValue (final ICursorDevice cursorDevice, final LinkedList<String> path, final Object value) throws MissingCommandException, UnknownCommandException, IllegalParameterException
+    {
+        if (!cursorDevice.doesExist ())
+        {
+            this.sendAllParametersError ("no device selected");
+            return;
+        }
+
+        final String command = getSubCommand (path);
+        switch (command)
+        {
+            case "count":
+                this.writer.sendOSC (ALL_PARAMS_ADDRESS + "count", this.getExistingParameterCount (cursorDevice), true);
+                this.writer.flush ();
+                break;
+
+            case "byname":
+                this.parseAllParamsByName (cursorDevice, value);
+                break;
+
+            case "list":
+                this.parseAllParamsList (cursorDevice, path);
+                break;
+
+            default:
+                this.parseAllParamsIndexValue (cursorDevice, command, path, value);
+                break;
+        }
+    }
+
+
+    private void parseAllParamsByName (final ICursorDevice cursorDevice, final Object value) throws IllegalParameterException
+    {
+        if (!(value instanceof final Object [] values) || values.length < 2)
+            throw new IllegalParameterException ("Expected name and value parameters");
+
+        final String name = values[0].toString ();
+        final int numericValue = toInteger (values[1]);
+        final IParameter parameter = this.findParameterByName (cursorDevice, name);
+        if (parameter == null)
+        {
+            this.sendAllParametersError ("parameter not found: " + name);
+            return;
+        }
+
+        parameter.setValue (numericValue);
+    }
+
+
+    private void parseAllParamsList (final ICursorDevice cursorDevice, final LinkedList<String> path)
+    {
+        int offset = 0;
+        if (!path.isEmpty ())
+        {
+            final String offsetText = path.removeFirst ();
+            try
+            {
+                offset = Integer.parseInt (offsetText);
+            }
+            catch (final NumberFormatException ex)
+            {
+                this.sendAllParametersError ("index out of range: " + offsetText + ", max: " + Math.max (0, this.getExistingParameterCount (cursorDevice) - 1));
+                return;
+            }
+        }
+
+        this.sendAllParametersList (cursorDevice, offset);
+    }
+
+
+    private void parseAllParamsIndexValue (final ICursorDevice cursorDevice, final String indexText, final LinkedList<String> path, final Object value) throws MissingCommandException, UnknownCommandException, IllegalParameterException
+    {
+        final int index;
+        try
+        {
+            index = Integer.parseInt (indexText);
+        }
+        catch (final NumberFormatException ex)
+        {
+            this.sendAllParametersError ("index out of range: " + indexText + ", max: " + this.getExistingParameterCount (cursorDevice));
+            return;
+        }
+
+        final IParameter parameter = this.getParameterAtIndex (cursorDevice, index);
+        if (parameter == null)
+        {
+            final int max = Math.max (0, this.getExistingParameterCount (cursorDevice) - 1);
+            this.sendAllParametersError ("index out of range: " + index + ", max: " + max);
+            return;
+        }
+
+        final String command = getSubCommand (path);
+        switch (command)
+        {
+            case "value":
+                parameter.setValue (toInteger (value));
+                break;
+
+            case TAG_NAME:
+                this.writer.sendOSC (ALL_PARAMS_ADDRESS + index + "/name", parameter.getName (), true);
+                this.writer.flush ();
+                break;
+
+            default:
+                throw new UnknownCommandException (command);
+        }
+    }
+
+
+    private void sendAllParametersList (final ICursorDevice cursorDevice, final int offset)
+    {
+        final List<IParameter> parameters = this.getExistingParameters (cursorDevice);
+        final int count = parameters.size ();
+        if (offset < 0 || offset >= count && count > 0)
+        {
+            this.sendAllParametersError ("index out of range: " + offset + ", max: " + Math.max (0, count - 1));
+            return;
+        }
+
+        this.writer.sendOSC (ALL_PARAMS_ADDRESS + "begin", List.of (cursorDevice.getName (), Integer.valueOf (count)), true);
+        for (int i = offset; i < count; i++)
+        {
+            final IParameter parameter = parameters.get (i);
+            this.writer.sendOSC (ALL_PARAMS_ADDRESS + "item", List.of (Integer.valueOf (i), parameter.getName (), parameter.getDisplayedValue (), Float.valueOf ((float) this.toNormalized (parameter))), true);
+        }
+        this.writer.sendOSC (ALL_PARAMS_ADDRESS + "end", List.of (), true);
+        this.writer.flush ();
+    }
+
+
+    private IParameter findParameterByName (final ICursorDevice cursorDevice, final String name)
+    {
+        final String loweredName = name.toLowerCase (Locale.US);
+        for (final IParameter parameter: this.getExistingParameters (cursorDevice))
+        {
+            if (parameter.getName ().toLowerCase (Locale.US).equals (loweredName))
+                return parameter;
+        }
+        return null;
+    }
+
+
+    private IParameter getParameterAtIndex (final ICursorDevice cursorDevice, final int index)
+    {
+        if (index < 0)
+            return null;
+
+        final List<IParameter> parameters = this.getExistingParameters (cursorDevice);
+        return index < parameters.size () ? parameters.get (index) : null;
+    }
+
+
+    private int getExistingParameterCount (final ICursorDevice cursorDevice)
+    {
+        return this.getExistingParameters (cursorDevice).size ();
+    }
+
+
+    private List<IParameter> getExistingParameters (final ICursorDevice cursorDevice)
+    {
+        final List<IParameter> parameters = cursorDevice.getParameterList ().getParameters ();
+        final List<IParameter> existingParameters = new ArrayList<> (parameters.size ());
+        for (final IParameter parameter: parameters)
+        {
+            if (parameter.doesExist ())
+                existingParameters.add (parameter);
+        }
+        return existingParameters;
+    }
+
+
+    private double toNormalized (final IParameter parameter)
+    {
+        final int upperBound = this.model.getValueChanger ().getUpperBound ();
+        return upperBound > 0 ? (double) parameter.getValue () / upperBound : 0.0;
+    }
+
+
+    private void sendAllParametersError (final String message)
+    {
+        this.writer.sendOSC (ALL_PARAMS_ADDRESS + "error", message, true);
+        this.writer.flush ();
     }
 
 
