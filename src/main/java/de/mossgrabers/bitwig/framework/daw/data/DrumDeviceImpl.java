@@ -33,6 +33,6 @@ public class DrumDeviceImpl extends SpecificDeviceImpl implements IDrumDevice
      */
     public DrumDeviceImpl (final IHost host, final IValueChanger valueChanger, final Device device, final int numSends, final int numParamPages, final int numParams, final int numDevicesInBank, final int numDeviceLayers, final int numDrumPadLayers)
     {
-        super (host, valueChanger, device, numSends, numParamPages, numParams, numDevicesInBank, numDeviceLayers, numDrumPadLayers, 0);
+        super (host, valueChanger, device, numSends, numParamPages, numParams, numDevicesInBank, numDeviceLayers, numDrumPadLayers, 0, false);
     }
 }

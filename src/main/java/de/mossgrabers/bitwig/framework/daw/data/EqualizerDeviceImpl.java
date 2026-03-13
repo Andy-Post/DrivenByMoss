@@ -63,7 +63,7 @@ public class EqualizerDeviceImpl extends SpecificDeviceImpl implements IEqualize
      */
     public EqualizerDeviceImpl (final IHost host, final IValueChanger valueChanger, final Device device, final int numParamPages, final int numParams)
     {
-        super (host, valueChanger, device, 0, numParamPages, numParams, 0, 0, 0, 0);
+        super (host, valueChanger, device, 0, numParamPages, numParams, 0, 0, 0, 0, false);
 
         final SpecificBitwigDevice eqDevice = device.createSpecificBitwigDevice (ID_BITWIG_EQ_PLUS);
 

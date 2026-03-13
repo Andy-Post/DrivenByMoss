@@ -155,6 +155,41 @@ public interface ISpecificDevice extends IDevice
     IDrumPadBank getDrumPadBank ();
 
 
+
+
+    /**
+     * Get all existing parameters of the extended parameter bank.
+     *
+     * @return All parameters
+     */
+    FullParameterInfo [] getAllParameters ();
+
+
+    /**
+     * Get a parameter by its index in the extended parameter bank.
+     *
+     * @param index The index
+     * @return The parameter information
+     */
+    FullParameterInfo getParameterByFullIndex (int index);
+
+
+    /**
+     * Get a parameter by its normalized name in the extended parameter bank.
+     *
+     * @param name The parameter name
+     * @return The parameter information
+     */
+    FullParameterInfo getParameterByName (String name);
+
+
+    /**
+     * Get the number of existing parameters in the extended parameter bank.
+     *
+     * @return The number of existing parameters
+     */
+    int getExistingParameterCount ();
+
     /**
      * Get the name of the preset.
      *

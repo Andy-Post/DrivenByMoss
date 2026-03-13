@@ -58,7 +58,7 @@ public class CursorLayerImpl implements ICursorLayer
         for (int i = 0; i < numDevicesInBank; i++)
         {
             final Device device = deviceBank.getItemAt (i);
-            this.devices.add (new SpecificDeviceImpl (host, valueChanger, device, 0, numParamPages, numParams, numDevicesInBank, 0, 0, 0));
+            this.devices.add (new SpecificDeviceImpl (host, valueChanger, device, 0, numParamPages, numParams, numDevicesInBank, 0, 0, 0, false));
         }
 
         this.deviceBank = new DeviceBankImpl (host, valueChanger, null, deviceBank, numDevicesInBank);
