@@ -38,6 +38,7 @@ public class ModelSetup
     private int                  numListParams              = 0;
     private boolean              wantsCursorLayer           = false;
     private boolean              wantsFocusedParameter      = false;
+    private boolean              wantsExtendedParameterBank = false;
 
     private int                  numFilterColumnEntries     = 16;
     private int                  numResults                 = 16;
@@ -509,6 +510,28 @@ public class ModelSetup
     public void setWantsFocusedParameter (final boolean wantsFocusedParameter)
     {
         this.wantsFocusedParameter = wantsFocusedParameter;
+    }
+
+
+    /**
+     * Should an extended device parameter bank be monitored?
+     *
+     * @return True if an extended parameter bank should be monitored
+     */
+    public boolean wantsExtendedParameterBank ()
+    {
+        return this.wantsExtendedParameterBank;
+    }
+
+
+    /**
+     * Set if an extended device parameter bank should be monitored.
+     *
+     * @param wantsExtendedParameterBank True if an extended parameter bank should be monitored
+     */
+    public void setWantsExtendedParameterBank (final boolean wantsExtendedParameterBank)
+    {
+        this.wantsExtendedParameterBank = wantsExtendedParameterBank;
     }
 
 

@@ -16,6 +16,7 @@ import de.mossgrabers.bitwig.framework.daw.data.bank.ParameterBankImpl;
 import de.mossgrabers.framework.controller.valuechanger.IValueChanger;
 import de.mossgrabers.framework.daw.IHost;
 import de.mossgrabers.framework.daw.ModelSetup;
+import de.mossgrabers.framework.daw.data.FullParameterInfo;
 import de.mossgrabers.framework.daw.data.IParameterList;
 import de.mossgrabers.framework.daw.data.ISpecificDevice;
 import de.mossgrabers.framework.daw.data.bank.IDrumPadBank;
@@ -36,6 +37,7 @@ public class SpecificDeviceImpl extends DeviceImpl implements ISpecificDevice
     private final IDrumPadBank                  drumPadBank;
     private final List<IValueObserver<Boolean>> hasDrumPadsObservers = new ArrayList<> ();
     private final IParameterList                parameterList;
+    private final ExtendedParameterBankImpl     extendedParameterBank;
 
 
     /**
@@ -48,7 +50,7 @@ public class SpecificDeviceImpl extends DeviceImpl implements ISpecificDevice
      */
     public SpecificDeviceImpl (final IHost host, final IValueChanger valueChanger, final Device device, final ModelSetup modelSetup)
     {
-        this (host, valueChanger, device, modelSetup.getNumSends (), modelSetup.getNumParamPages (), modelSetup.getNumParams (), modelSetup.getNumDevicesInBank (), modelSetup.getNumDeviceLayers (), modelSetup.getNumDrumPadLayers (), modelSetup.getNumListParams ());
+        this (host, valueChanger, device, modelSetup.getNumSends (), modelSetup.getNumParamPages (), modelSetup.getNumParams (), modelSetup.getNumDevicesInBank (), modelSetup.getNumDeviceLayers (), modelSetup.getNumDrumPadLayers (), modelSetup.getNumListParams (), modelSetup.wantsExtendedParameterBank ());
     }
 
 
@@ -66,8 +68,9 @@ public class SpecificDeviceImpl extends DeviceImpl implements ISpecificDevice
      * @param numDrumPadLayers The number of drum pad layers
      * @param numListParams The number of parameter of a device to monitor and make a available in a
      *            list
+     * @param wantsExtendedParameterBank True to monitor an extended parameter bank
      */
-    public SpecificDeviceImpl (final IHost host, final IValueChanger valueChanger, final Device device, final int numSends, final int numParamPages, final int numParams, final int numDevicesInBank, final int numDeviceLayers, final int numDrumPadLayers, final int numListParams)
+    public SpecificDeviceImpl (final IHost host, final IValueChanger valueChanger, final Device device, final int numSends, final int numParamPages, final int numParams, final int numDevicesInBank, final int numDeviceLayers, final int numDrumPadLayers, final int numListParams, final boolean wantsExtendedParameterBank)
     {
         super (device, -1);
 
@@ -97,6 +100,7 @@ public class SpecificDeviceImpl extends DeviceImpl implements ISpecificDevice
             this.parameterBank = null;
 
         this.parameterList = new ParameterListImpl (numListParams / 8, device, host, valueChanger);
+        this.extendedParameterBank = wantsExtendedParameterBank ? new ExtendedParameterBankImpl (host, device) : null;
 
         // Monitor the layers of a container device (if any)
         this.layerBank = new LayerBankImpl (host, valueChanger, checkedNumDeviceLayers > 0 ? this.device.createLayerBank (checkedNumDeviceLayers) : null, this.device.createCursorLayer (), checkedNumDeviceLayers, numSends, checkedNumDevices);
@@ -281,6 +285,38 @@ public class SpecificDeviceImpl extends DeviceImpl implements ISpecificDevice
     public IParameterList getParameterList ()
     {
         return this.parameterList;
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public FullParameterInfo [] getAllParameters ()
+    {
+        return this.extendedParameterBank == null ? new FullParameterInfo [0] : this.extendedParameterBank.getAllParameters ();
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public FullParameterInfo getParameterByFullIndex (final int index)
+    {
+        return this.extendedParameterBank == null ? null : this.extendedParameterBank.getParameterByIndex (index);
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public FullParameterInfo getParameterByName (final String name)
+    {
+        return this.extendedParameterBank == null ? null : this.extendedParameterBank.getParameterByName (name);
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public int getExistingParameterCount ()
+    {
+        return this.extendedParameterBank == null ? 0 : this.extendedParameterBank.getExistingParameterCount ();
     }
 
 
