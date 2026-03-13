@@ -4,6 +4,8 @@
 
 package de.mossgrabers.framework.osc;
 
+import java.util.List;
+
 /**
  * Interface for sending OSC messages.
  *
@@ -96,4 +98,16 @@ public interface IOpenSoundControlWriter
      * @param dump True to dump (ignore cache)
      */
     void sendOSC (String address, String value, boolean dump);
+
+
+    /**
+     * Send an OSC message with multiple values. Tests if the value(s) of given message is
+     * identical to that of the cache. If this is not the case or if dump is true, the message is
+     * added to the messages list.The message will be sent when flush gets called.
+     *
+     * @param address The address of the OSC message
+     * @param values The values to send
+     * @param dump True to dump (ignore cache)
+     */
+    void sendOSC (String address, List<?> values, boolean dump);
 }

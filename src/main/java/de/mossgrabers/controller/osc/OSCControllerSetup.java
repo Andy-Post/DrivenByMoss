@@ -48,6 +48,8 @@ import de.mossgrabers.framework.utils.KeyManager;
  */
 public class OSCControllerSetup extends AbstractControllerSetup<IControlSurface<OSCConfiguration>, OSCConfiguration>
 {
+    private static final int      EXTENDED_PARAMETER_BANK_SIZE = 512;
+
     private OSCWriter               writer;
     private KeyManager              keyManager;
     private IOpenSoundControlServer oscServer;
@@ -108,6 +110,7 @@ public class OSCControllerSetup extends AbstractControllerSetup<IControlSurface<
         ms.setNumParamPages (bankPageSize);
         ms.setNumParams (bankPageSize);
         ms.setNumMarkers (bankPageSize);
+        ms.setNumListParams (EXTENDED_PARAMETER_BANK_SIZE);
 
         this.model = this.factory.createModel (this.configuration, this.colorManager, this.valueChanger, this.scales, ms);
     }
