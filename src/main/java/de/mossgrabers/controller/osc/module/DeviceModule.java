@@ -452,7 +452,7 @@ public class DeviceModule extends AbstractModule
         {
             case "count":
                 this.writer.sendOSC (ALL_PARAMS_ADDRESS + "count", this.getExistingParameterCount (cursorDevice), true);
-                this.writer.flush ();
+                this.writer.flush (false);
                 break;
 
             case "byname":
@@ -539,7 +539,7 @@ public class DeviceModule extends AbstractModule
 
             case TAG_NAME:
                 this.writer.sendOSC (ALL_PARAMS_ADDRESS + index + "/name", parameter.getName (), true);
-                this.writer.flush ();
+                this.writer.flush (false);
                 break;
 
             default:
@@ -565,7 +565,7 @@ public class DeviceModule extends AbstractModule
             this.writer.sendOSC (ALL_PARAMS_ADDRESS + "item", List.of (Integer.valueOf (i), parameter.getName (), parameter.getDisplayedValue (), Float.valueOf ((float) this.toNormalized (parameter))), true);
         }
         this.writer.sendOSC (ALL_PARAMS_ADDRESS + "end", List.of (), true);
-        this.writer.flush ();
+        this.writer.flush (false);
     }
 
 
@@ -620,7 +620,7 @@ public class DeviceModule extends AbstractModule
     private void sendAllParametersError (final String message)
     {
         this.writer.sendOSC (ALL_PARAMS_ADDRESS + "error", message, true);
-        this.writer.flush ();
+        this.writer.flush (false);
     }
 
 
