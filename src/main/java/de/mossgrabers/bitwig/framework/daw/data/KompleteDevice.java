@@ -45,7 +45,7 @@ public class KompleteDevice extends SpecificDeviceImpl
      */
     public KompleteDevice (final IHost host, final IValueChanger valueChanger, final Device device)
     {
-        super (host, valueChanger, device, 0, 0, 0, 0, 0, 0, 0);
+        super (host, valueChanger, device, 0, 0, 0, 0, 0, 0, 0, false);
 
         this.registerSpecificDevice (device.createSpecificVst2Device (VST2_KOMPLETE_ID), 0);
         this.registerSpecificDevice (device.createSpecificVst3Device (VST3_KOMPLETE_ID), 0);
